@@ -5,9 +5,8 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-# Agar automation fail ho, toh ye token kaam karega
-# Ek baar fresh token yahan paste kar dein
-MANUAL_TOKEN = "Bearer YOUR_FRESH_TOKEN_HERE"
+# Aapka fresh token yahan set kar diya hai
+MANUAL_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOiIxNzc3Nzg1NTcxIiwibmJmIjoiMTc3Nzc4NTU3MSIsImV4cCI6IjE3Nzc3ODczNzEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL2V4cGlyYXRpb24iOiI1LzMvMjAyNiAxMToxOTozMSBBTSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFjY2Vzc19Ub2tlbiIsIlVzZXJJZCI6IjU3OTE5MjMiLCJVc2VyTmFtZSI6IjkxODQzOTE4MTI2NiIsIlVzZXJQaG90byI6IjEiLCJOaWNrTmFtZSI6Ik1lbWJlck5OR0FRU1RYIiwiQW1vdW50IjoiMC45OCIsIkludGVncmFsIjoiMCIsIkxvZ2luTWFyayI6Ikg1IiwiTG9naW5UaW1lIjoiNS8zLzIwMjYgMTA6NDk6MzEgQU0iLCJMb2dpbklQQWRkcmVzcyI6IjE1Mi41OS44Ny43OSIsIkRiTnVtYmVyIjoiMCIsIklzdmFsaWRhdG9yIjoiMCIsIktleUNvZGUiOiI1NSIsIlRva2VuVHlwZSI6IkFjY2Vzc19Ub2tlbiIsIlBob25lVHlwZSI6IjAiLCJVc2VyVHlwZSI6IjAiLCJVc2VyTmFtZTIiOiIiLCJpc3MiOiJqd3RJc3N1ZXIiLCJhdWQiOiJsb3R0ZXJ5VGlja2V0In0.NB61FaxGMuYU3nGcQrKlR2XlbXFOK1ZnhT4QDAP6NYY"
 
 USER_PHONE = os.environ.get('USER_PHONE', '918439181266')
 USER_PASSWORD = os.environ.get('USER_PASSWORD', '72483382A')
@@ -27,17 +26,14 @@ def login_and_get_token():
 
     try:
         r = requests.post(login_url, json=payload, headers=headers, timeout=10)
-        # Check if response is actually JSON
         if r.status_code == 200 and r.text:
             res = r.json()
             if res.get('code') == 0:
                 cached_token = "Bearer " + res['data']['token']
-                print("AUTO-LOGIN SUCCESSFUL")
                 return cached_token
-        print(f"AUTO-LOGIN FAILED: Status {r.status_code}")
     except Exception as e:
-        print(f"AUTO-LOGIN EXCEPTION: {e}")
-    return cached_token # Return existing if new fails
+        print(f"AUTO-LOGIN FAILED: {e}")
+    return cached_token # Login fail hone par manual token use karega
 
 @app.route('/')
 def home():
@@ -60,9 +56,8 @@ def get_upi():
 
     try:
         r = fetch_upi(cached_token)
-        # Agar token expire dikhaye toh refresh try karo
+        # Agar token expire dikhaye toh auto-refresh try karo
         if r.status_code == 401 or (r.text and r.json().get('code') == 401):
-            print("Token expired, trying auto-refresh...")
             cached_token = login_and_get_token()
             r = fetch_upi(cached_token)
 
