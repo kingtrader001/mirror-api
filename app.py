@@ -3,7 +3,6 @@ import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-# 1. Sabse pehle app define karna zaroori hai
 app = Flask(__name__)
 CORS(app)
 
@@ -18,26 +17,23 @@ def home():
 @app.route('/get_razorpay_qr')
 def get_razorpay_qr():
     try:
-        # App se amount mangwana (default 500 agar na mile)
         amount_val = request.args.get('amount', '500')
-        # Razorpay paise mein amount leta hai (₹1 = 100 paise)
         amount_paise = int(float(amount_val) * 100)
 
-        # Razorpay Payment Link API call
         url = "https://api.razorpay.com/v1/payment_links"
         payload = {
             "amount": amount_paise,
             "currency": "INR",
             "accept_partial": False,
-            "description": "Gaming Wallet Deposit",
+            "description": "Wallet Deposit",
             "customer": {
-                "name": "Game User",
-                "email": "user@example.com",
-                "contact": "+919999999999"
+                "name": "App User",
+                "email": "user.support@gmail.com",
+                "contact": "8439181266"  # Valid number for validation
             },
             "notify": {"sms": False, "email": False},
             "reminder_enable": False,
-            "upi_link": True  # Isse direct UPI QR banta hai
+            "upi_link": True 
         }
 
         response = requests.post(url, json=payload, auth=(RZP_KEY_ID, RZP_KEY_SECRET), timeout=15)
@@ -45,7 +41,6 @@ def get_razorpay_qr():
 
         if response.status_code == 200 or response.status_code == 201:
             short_url = res_data.get('short_url')
-            # QR image generate karne ke liye link
             qr_image_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={short_url}"
             
             return jsonify({
@@ -60,6 +55,5 @@ def get_razorpay_qr():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
-    # Render ke liye port configuration
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
