@@ -3,14 +3,16 @@ import requests
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+# 1. Pehle Flask app define karo (Sabse upar hona chahiye)
 app = Flask(__name__)
 CORS(app)
 
-# Aapki login details
+# 2. Configuration
 USER_PHONE = "918439181266"
 USER_PASSWORD = "72483382A"
 BASE_URL = "https://fortransferapi777.top/api/webapi"
 
+# 3. Routes (Ab 'app' define ho chuka hai, toh error nahi aayega)
 @app.route('/')
 def home():
     return "Mirror Server Active", 200
